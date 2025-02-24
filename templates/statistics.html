@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HR Statistics</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .stat { margin: 10px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>HR Statistics</h1>
+    <div class="stat">
+        <p>Total Assessments Created: {{ total_assessments }}</p>
+    </div>
+    <div class="stat">
+        <p>Total Candidates Registered: {{ total_candidates }}</p>
+    </div>
+    <div class="stat">
+        <p>Tests Taken: {{ tests_taken }}</p>
+    </div>
+    <div class="stat">
+        <p>Tests Never Taken: {{ tests_never_taken }}</p>
+    </div>
+    <a href="{% url 'hr_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>

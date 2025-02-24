@@ -9,7 +9,9 @@ urlpatterns = [
     path('candidate/login/', views.candidate_login, name='candidate_login'),
     path('hr/dashboard/', views.hr_dashboard, name='hr_dashboard'),
     path('candidate/dashboard/', views.candidate_dashboard, name='candidate_dashboard'),
-    path('logout/', views.logout_view, name='logout'),
     path('hr/create-assessment/', views.create_assessment, name='create_assessment'),
     path('hr/view-assessments/', views.view_assessments, name='view_assessments'),
+    path('hr/view-candidates/', views.view_candidates, name='view_candidates'),
+    path('hr/statistics/', views.statistics, name='statistics'),  # New route
+    path('logout/', views.logout_view, name='logout'),
 ]

@@ -5,6 +5,37 @@ from django.contrib import messages
 from .models import HRProfile, CandidateProfile
 from .models import Assessment, Question, Choice
 from django.contrib.auth.decorators import login_required
+from .models import CandidateProfile
+from .models import Assessment, CandidateProfile
+
+@login_required
+def statistics(request):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can view statistics.")
+        return redirect('home')
+    
+    total_assessments = Assessment.objects.filter(created_by=request.user).count()
+    total_candidates = CandidateProfile.objects.count()
+    # For now, we'll assume tests taken are tied to assessments (we'll refine this later)
+    tests_taken = 0  # Placeholder—expand with actual logic later
+    tests_never_taken = total_assessments - tests_taken  # Placeholder
+
+    context = {
+        'total_assessments': total_assessments,
+        'total_candidates': total_candidates,
+        'tests_taken': tests_taken,
+        'tests_never_taken': tests_never_taken,
+    }
+    return render(request, 'statistics.html', context)
+
+@login_required
+def view_candidates(request):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can view candidates.")
+        return redirect('home')
+    
+    candidates = CandidateProfile.objects.all()
+    return render(request, 'view_candidates.html', {'candidates': candidates})
 
 @login_required
 def create_assessment(request):
