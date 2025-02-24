@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Take Assessment</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        form { display: flex; flex-direction: column; max-width: 600px; }
-        label { margin-top: 10px; }
-        .button { margin-top: 20px; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Take Assessment{% endblock %}
+
+{% block content %}
     <h1>Take Assessment: {{ assignment.assessment.title }}</h1>
     <form method="post">
         {% csrf_token %}
@@ -17,15 +10,16 @@
             <h3>{{ question.text }}</h3>
             {% if question.question_type == 'MC' %}
                 {% for choice in question.choices.all %}
-                    <label>
-                        <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}">
-                        {{ choice.text }}
-                    </label><br>
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                            {{ choice.text }}
+                        </label>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endfor %}
-        <button type="submit" class="button">Submit Assessment</button>
+        <button type="submit" class="btn btn-primary mt-3">Submit Assessment</button>
     </form>
-    <a href="{% url 'candidate_dashboard' %}">Back to Dashboard</a>
-</body>
-</html>
+    <a href="{% url 'candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+{% endblock %}

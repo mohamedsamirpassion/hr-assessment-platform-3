@@ -1,26 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HR Statistics</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .stat { margin: 10px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}HR Statistics{% endblock %}
+
+{% block content %}
     <h1>HR Statistics</h1>
-    <div class="stat">
-        <p>Total Assessments Created: {{ total_assessments }}</p>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Assessments Created</h5>
+                    <p class="card-text">{{ total_assessments }}</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Candidates Registered</h5>
+                    <p class="card-text">{{ total_candidates }}</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Tests Taken</h5>
+                    <p class="card-text">{{ tests_taken }}</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Tests Never Taken</h5>
+                    <p class="card-text">{{ tests_never_taken }}</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <p>Total Candidates Registered: {{ total_candidates }}</p>
-    </div>
-    <div class="stat">
-        <p>Tests Taken: {{ tests_taken }}</p>
-    </div>
-    <div class="stat">
-        <p>Tests Never Taken: {{ tests_never_taken }}</p>
-    </div>
-    <a href="{% url 'hr_dashboard' %}">Back to Dashboard</a>
-</body>
-</html>
+    <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}
