@@ -2,10 +2,36 @@
 <html>
 <head>
     <title>Candidate Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .button { margin: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; }
+    </style>
 </head>
 <body>
     <h1>Candidate Dashboard</h1>
-    <p>Welcome, Candidate! (Placeholder)</p>
-    <a href="{% url 'home' %}">Back to Home</a>
+    <p>Welcome, {{ request.user.username }} ({{ request.user.candidateprofile.full_name }})</p>
+    {% if assignments %}
+        <h2>Assigned Assessments</h2>
+        <table>
+            <tr>
+                <th>Assessment Title</th>
+                <th>Actions</th>
+            </tr>
+            {% for assignment in assignments %}
+                <tr>
+                    <td>{{ assignment.assessment.title }}</td>
+                    <td>
+                        <a href="{% url 'take_assessment' assignment.id %}" class="button">Take Test</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No assessments assigned to you yet.</p>
+    {% endif %}
+    <a href="{% url 'home' %}">Logout</a>
 </body>
 </html>

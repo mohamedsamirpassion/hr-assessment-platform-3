@@ -59,3 +59,12 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.text
+
+class AssessmentAssignment(models.Model):
+    assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.candidate.user.username} - {self.assessment.title}"

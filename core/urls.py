@@ -14,4 +14,6 @@ urlpatterns = [
     path('hr/view-candidates/', views.view_candidates, name='view_candidates'),
     path('hr/statistics/', views.statistics, name='statistics'),  # New route
     path('logout/', views.logout_view, name='logout'),
+    path('hr/assign-assessment/<int:candidate_id>/', views.assign_assessment, name='assign_assessment'),
+    path('candidate/take-assessment/<int:assignment_id>/', views.take_assessment, name='take_assessment'),
 ]
