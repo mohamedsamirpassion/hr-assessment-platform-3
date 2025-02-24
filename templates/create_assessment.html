@@ -1,39 +1,46 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Assessment</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        form { display: flex; flex-direction: column; max-width: 600px; }
-        label { margin-top: 10px; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Create Assessment{% endblock %}
+
+{% block content %}
     <h1>Create Assessment</h1>
     {% if messages %}
         {% for message in messages %}
-            <p>{{ message }}</p>
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
         {% endfor %}
     {% endif %}
-    <form method="post">
+    <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        <label>Title:</label>
-        <input type="text" name="title" required>
-        <label>Description:</label>
-        <textarea name="description"></textarea>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" name="title" id="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            <textarea name="description" id="description" class="form-control"></textarea>
+        </div>
         <h3>Add a Question (Multiple Choice)</h3>
-        <label>Question Text:</label>
-        <input type="text" name="question_text" required>
-        <label>Choice 1:</label>
-        <input type="text" name="choice1" required>
-        <label>Choice 2:</label>
-        <input type="text" name="choice2" required>
-        <label>Choice 3:</label>
-        <input type="text" name="choice3" required>
-        <label>Correct Choice (1, 2, or 3):</label>
-        <input type="number" name="correct_choice" min="1" max="3" required>
-        <button type="submit" style="margin-top: 20px;">Create Assessment</button>
+        <div class="mb-3">
+            <label for="question_text" class="form-label">Question Text:</label>
+            <input type="text" name="question_text" id="question_text" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="choice1" class="form-label">Choice 1:</label>
+            <input type="text" name="choice1" id="choice1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="choice2" class="form-label">Choice 2:</label>
+            <input type="text" name="choice2" id="choice2" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="choice3" class="form-label">Choice 3:</label>
+            <input type="text" name="choice3" id="choice3" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="correct_choice" class="form-label">Correct Choice (1, 2, or 3):</label>
+            <input type="number" name="correct_choice" id="correct_choice" class="form-control" min="1" max="3" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Assessment</button>
     </form>
-    <a href="{% url 'hr_dashboard' %}">Back to Dashboard</a>
-</body>
-</html>
+    <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+{% endblock %}

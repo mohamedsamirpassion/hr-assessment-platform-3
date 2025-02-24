@@ -1,24 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HR Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .nav { margin-bottom: 20px; }
-        .nav a { margin-right: 10px; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}HR Dashboard{% endblock %}
+
+{% block content %}
     <h1>HR Dashboard</h1>
     <p>Welcome, {{ request.user.username }} ({{ request.user.hrprofile.company_name }})</p>
-    <div class="nav">
-        <a href="{% url 'create_assessment' %}">Create Assessment</a>
-        <a href="{% url 'view_assessments' %}">View Assessments</a>
-        <a href="{% url 'view_candidates' %}">View Candidates</a>
-        <a href="{% url 'statistics' %}">Statistics</a>
-        <a href="{% url 'logout' %}">Logout</a> <!-- Temporary logout link -->
+    <div class="nav mb-3">
+        <a href="{% url 'create_assessment' %}" class="btn btn-primary me-2">Create Assessment</a>
+        <a href="{% url 'view_assessments' %}" class="btn btn-secondary me-2">View Assessments</a>
+        <a href="{% url 'view_candidates' %}" class="btn btn-secondary me-2">View Candidates</a>
+        <a href="{% url 'statistics' %}" class="btn btn-secondary me-2">Statistics</a>
     </div>
     <h2>Your Dashboard</h2>
     <p>This is where you'll manage assessments, candidates, and more. Pick an option above!</p>
-</body>
-</html>
+{% endblock %}

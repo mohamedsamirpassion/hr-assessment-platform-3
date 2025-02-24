@@ -1,34 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>View Assessments</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}View Assessments{% endblock %}
+
+{% block content %}
     <h1>Your Assessments</h1>
     {% if assessments %}
-        <table>
-            <tr>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Created At</th>
-            </tr>
-            {% for assessment in assessments %}
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>{{ assessment.title }}</td>
-                    <td>{{ assessment.description }}</td>
-                    <td>{{ assessment.created_at }}</td>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Created At</th>
                 </tr>
-            {% endfor %}
+            </thead>
+            <tbody>
+                {% for assessment in assessments %}
+                    <tr>
+                        <td>{{ assessment.title }}</td>
+                        <td>{{ assessment.description }}</td>
+                        <td>{{ assessment.created_at }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
         </table>
     {% else %}
         <p>No assessments created yet.</p>
     {% endif %}
-    <a href="{% url 'hr_dashboard' %}">Back to Dashboard</a>
-</body>
-</html>
+    <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}

@@ -1,23 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HR Assessment Platform</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .section { margin: 20px; }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}HR Assessment Platform{% endblock %}
+
+{% block content %}
     <h1>Welcome to the HR Assessment Platform</h1>
-    <div class="section">
-        <h2>For HR</h2>
-        <a href="{% url 'hr_signup' %}">Sign Up</a> | 
-        <a href="{% url 'hr_login' %}">Login</a>
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">For HR</h2>
+                    <a href="{% url 'hr_signup' %}" class="btn btn-primary">Sign Up</a>
+                    <a href="{% url 'hr_login' %}" class="btn btn-secondary">Login</a>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h2 class="card-title">For Candidates</h2>
+                    <a href="{% url 'candidate_signup' %}" class="btn btn-primary">Sign Up</a>
+                    <a href="{% url 'candidate_login' %}" class="btn btn-secondary">Login</a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="section">
-        <h2>For Candidates</h2>
-        <a href="{% url 'candidate_signup' %}">Sign Up</a> | 
-        <a href="{% url 'candidate_login' %}">Login</a>
-    </div>
-</body>
-</html>
+{% endblock %}
