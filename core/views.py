@@ -3,6 +3,52 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import HRProfile, CandidateProfile
+from .models import Assessment, Question, Choice
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def create_assessment(request):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can create assessments.")
+        return redirect('home')
+    
+    if request.method == 'POST':
+        title = request.POST['title']
+        description = request.POST['description']
+        question_text = request.POST['question_text']
+        choice1 = request.POST['choice1']
+        choice2 = request.POST['choice2']
+        choice3 = request.POST['choice3']
+        correct_choice = request.POST['correct_choice']
+        
+        assessment = Assessment.objects.create(
+            title=title,
+            description=description,
+            created_by=request.user
+        )
+        question = Question.objects.create(
+            assessment=assessment,
+            text=question_text,
+            question_type='MC'
+        )
+        Choice.objects.create(question=question, text=choice1, is_correct=(correct_choice == '1'))
+        Choice.objects.create(question=question, text=choice2, is_correct=(correct_choice == '2'))
+        Choice.objects.create(question=question, text=choice3, is_correct=(correct_choice == '3'))
+        
+        messages.success(request, "Assessment created successfully!")
+        return redirect('view_assessments')
+    
+    return render(request, 'create_assessment.html')
+
+@login_required
+def view_assessments(request):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can view assessments.")
+        return redirect('home')
+    
+    assessments = Assessment.objects.filter(created_by=request.user)
+    return render(request, 'view_assessments.html', {'assessments': assessments})
+
 
 def home(request):
     return render(request, 'home.html')
@@ -81,3 +127,7 @@ def hr_dashboard(request):
 
 def candidate_dashboard(request):
     return render(request, 'candidate_dashboard.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')

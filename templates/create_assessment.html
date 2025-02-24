@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Assessment</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { display: flex; flex-direction: column; max-width: 600px; }
+        label { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Create Assessment</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <label>Title:</label>
+        <input type="text" name="title" required>
+        <label>Description:</label>
+        <textarea name="description"></textarea>
+        <h3>Add a Question (Multiple Choice)</h3>
+        <label>Question Text:</label>
+        <input type="text" name="question_text" required>
+        <label>Choice 1:</label>
+        <input type="text" name="choice1" required>
+        <label>Choice 2:</label>
+        <input type="text" name="choice2" required>
+        <label>Choice 3:</label>
+        <input type="text" name="choice3" required>
+        <label>Correct Choice (1, 2, or 3):</label>
+        <input type="number" name="correct_choice" min="1" max="3" required>
+        <button type="submit" style="margin-top: 20px;">Create Assessment</button>
+    </form>
+    <a href="{% url 'hr_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>

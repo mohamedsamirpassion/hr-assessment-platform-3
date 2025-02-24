@@ -2,10 +2,23 @@
 <html>
 <head>
     <title>HR Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 10px; }
+    </style>
 </head>
 <body>
     <h1>HR Dashboard</h1>
-    <p>Welcome, HR user! (Placeholder)</p>
-    <a href="{% url 'home' %}">Back to Home</a>
+    <p>Welcome, {{ request.user.username }} ({{ request.user.hrprofile.company_name }})</p>
+    <div class="nav">
+        <a href="{% url 'create_assessment' %}">Create Assessment</a>
+        <a href="{% url 'view_assessments' %}">View Assessments</a>
+        <a href="{% url 'view_candidates' %}">View Candidates</a>
+        <a href="{% url 'statistics' %}">Statistics</a>
+        <a href="{% url 'logout' %}">Logout</a> <!-- Temporary logout link -->
+    </div>
+    <h2>Your Dashboard</h2>
+    <p>This is where you'll manage assessments, candidates, and more. Pick an option above!</p>
 </body>
 </html>
