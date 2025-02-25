@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from .models import CandidateProfile
 from .models import Assessment, CandidateProfile
 from .models import AssessmentAssignment
+from .models import Assessment, CandidateProfile, AssessmentAssignment
 
 @login_required
 def assign_assessment(request, candidate_id):
@@ -39,8 +40,14 @@ def statistics(request):
     total_assessments = Assessment.objects.filter(created_by=request.user).count()
     total_candidates = CandidateProfile.objects.count()
     # For now, we'll assume tests taken are tied to assessments (we'll refine this later)
-    tests_taken = 0  # Placeholder—expand with actual logic later
-    tests_never_taken = total_assessments - tests_taken  # Placeholder
+    tests_taken = AssessmentAssignment.objects.filter(
+        assessment__created_by=request.user,
+        completed=True
+    ).count()
+    tests_never_taken = AssessmentAssignment.objects.filter(
+        assessment__created_by=request.user,
+        completed=False
+    ).count()
 
     context = {
         'total_assessments': total_assessments,
