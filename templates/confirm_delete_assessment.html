@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete Assessment{% endblock %}
+
+{% block content %}
+    <h1>Confirm Delete Assessment</h1>
+    <p>Are you sure you want to delete the assessment "{{ assessment.title }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary">No, Cancel</a>
+    </form>
+{% endblock %}

@@ -1,7 +1,6 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 
 class HRProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -17,23 +16,53 @@ class CandidateProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} (Candidate)"
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        pass
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'hrprofile'):
-        instance.hrprofile.save()
-    elif hasattr(instance, 'candidateprofile'):
-        instance.candidateprofile.save()
-
 class Assessment(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='assessments/', null=True, blank=True)  # For image/icon
+    open_date = models.DateTimeField(default=timezone.now)
+    close_date = models.DateTimeField(null=True, blank=True)
+    time_limit = models.PositiveIntegerField(help_text="Time limit in minutes", null=True, blank=True)
+    grading_method = models.CharField(
+        max_length=20,
+        choices=[
+            ('auto', 'Self-Corrected'),
+            ('manual', 'Manual'),
+            ('partial', 'Partially Corrected'),
+        ],
+        default='auto'
+    )
+    layout = models.CharField(
+        max_length=20,
+        choices=[
+            ('all_one_page', 'All questions on one page'),
+            ('each_question', 'Each question on a separate page'),
+            ('all_sections', 'All sections on one page'),
+            ('each_section', 'Each section on a separate page'),
+        ],
+        default='all_one_page'
+    )
+    navigation = models.CharField(
+        max_length=10,
+        choices=[
+            ('free', 'Free'),
+            ('sequential', 'Sequential'),
+        ],
+        default='free'
+    )
+    shuffle_questions = models.BooleanField(default=False)
+    feedback = models.CharField(
+        max_length=20,
+        choices=[
+            ('deferred', 'Deferred Feedback'),
+            ('immediate_question', 'Immediate per Question'),
+            ('immediate_section', 'Immediate per Section'),
+            ('none', 'No Feedback'),
+        ],
+        default='deferred'
+    )
+    unanswered_prompt = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'hrprofile__isnull': False})
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
@@ -46,9 +75,10 @@ class Question(models.Model):
         ('SA', 'Short Answer'),
         ('TF', 'True/False'),
         ('UP', 'File Upload'),
-        ('MA', 'Matching'),  # Add more as needed
+        ('MA', 'Matching'),
     )
     question_type = models.CharField(max_length=2, choices=QUESTION_TYPES, default='MC')
+    points = models.PositiveIntegerField(default=1, help_text="Points for this question")
 
     def __str__(self):
         return f"{self.text} ({self.get_question_type_display()})"

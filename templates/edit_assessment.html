@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Assessment{% endblock %}
+{% block title %}Edit Assessment{% endblock %}
 
 {% block content %}
-    <h1>Create Assessment</h1>
+    <h1>Edit Assessment: {{ form.instance.title }}</h1>
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -12,7 +12,7 @@
     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Create Assessment</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
     </form>
-    <a href="{% url 'core:hr_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+    <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary mt-2">Back to Assessments</a>
 {% endblock %}

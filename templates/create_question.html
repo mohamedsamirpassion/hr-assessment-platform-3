@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Question for {{ assessment.title }}{% endblock %}
+
+{% block content %}
+    <h1>Create Question for {{ assessment.title }}</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="question_type" class="form-label">Question Type:</label>
+            <select name="question_type" id="question_type" class="form-control" required onchange="showQuestionFields()">
+                <option value="MC">Multiple Choice</option>
+                <option value="TF">True/False</option>
+                <option value="SA">Short Answer</option>
+                <option value="UP">File Upload</option>
+                <option value="MA">Matching</option>
+            </select>
+        </div>
+        <div id="mc_fields" class="question-fields">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text:</label>
+                <input type="text" name="question_text" id="question_text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="choice1" class="form-label">Choice 1:</label>
+                <input type="text" name="choice1" id="choice1" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="choice2" class="form-label">Choice 2:</label>
+                <input type="text" name="choice2" id="choice2" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="choice3" class="form-label">Choice 3:</label>
+                <input type="text" name="choice3" id="choice3" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="correct_choice" class="form-label">Correct Choice (1, 2, or 3):</label>
+                <input type="number" name="correct_choice" id="correct_choice" class="form-control" min="1" max="3" required>
+            </div>
+        </div>
+        <div id="tf_fields" class="question-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text:</label>
+                <input type="text" name="question_text" id="question_text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="true_false_answer" class="form-label">Answer (True/False):</label>
+                <input type="text" name="true_false_answer" id="true_false_answer" class="form-control" required>
+            </div>
+        </div>
+        <div id="sa_fields" class="question-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text:</label>
+                <input type="text" name="question_text" id="question_text" class="form-control" required>
+            </div>
+        </div>
+        <div id="up_fields" class="question-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text:</label>
+                <input type="text" name="question_text" id="question_text" class="form-control" required>
+            </div>
+        </div>
+        <div id="ma_fields" class="question-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="question_text" class="form-label">Question Text:</label>
+                <input type="text" name="question_text" id="question_text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>Pair 1:</label>
+                <input type="text" name="left1" class="form-control" placeholder="Left Side" required>
+                <input type="text" name="right1" class="form-control" placeholder="Right Side" required>
+            </div>
+            <div class="mb-3">
+                <label>Pair 2:</label>
+                <input type="text" name="left2" class="form-control" placeholder="Left Side" required>
+                <input type="text" name="right2" class="form-control" placeholder="Right Side" required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Question</button>
+    </form>
+    <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary mt-2">Back to Assessments</a>
+
+    <script>
+        function showQuestionFields() {
+            const questionType = document.getElementById('question_type').value;
+            const fields = document.getElementsByClassName('question-fields');
+            for (let field of fields) {
+                field.style.display = 'none';
+            }
+            if (questionType === 'MC') document.getElementById('mc_fields').style.display = 'block';
+            else if (questionType === 'TF') document.getElementById('tf_fields').style.display = 'block';
+            else if (questionType === 'SA') document.getElementById('sa_fields').style.display = 'block';
+            else if (questionType === 'UP') document.getElementById('up_fields').style.display = 'block';
+            else if (questionType === 'MA') document.getElementById('ma_fields').style.display = 'block';
+        }
+        window.onload = showQuestionFields;
+    </script>
+{% endblock %}

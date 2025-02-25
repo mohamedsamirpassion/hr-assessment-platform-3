@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'core'  # Ensure this is present for namespace
 
@@ -19,4 +21,10 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('hr/assign-assessment/<int:candidate_id>/', views.assign_assessment, name='assign_assessment'),
     path('candidate/take-assessment/<int:assignment_id>/', views.take_assessment, name='take_assessment'),
+    path('hr/edit-assessment/<int:assessment_id>/', views.edit_assessment, name='edit_assessment'),  # New
+    path('hr/delete-assessment/<int:assessment_id>/', views.delete_assessment, name='delete_assessment'),  # New
 ]
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
