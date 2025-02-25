@@ -28,5 +28,5 @@
     {% else %}
         <p>No results available yet.</p>
     {% endif %}
-    <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="{% url 'core:hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>  <!-- Updated to use 'core:hr_dashboard' -->
 {% endblock %}

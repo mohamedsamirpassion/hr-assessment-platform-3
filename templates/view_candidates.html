@@ -19,7 +19,7 @@
                         <td>{{ candidate.user.username }}</td>
                         <td>{{ candidate.full_name }}</td>
                         <td>
-                            <a href="{% url 'assign_assessment' candidate.id %}" class="btn btn-primary">Assign Test</a>
+                            <a href="{% url 'core:assign_assessment' candidate.id %}" class="btn btn-primary">Assign Test</a>  <!-- Updated to use 'core:assign_assessment' -->
                         </td>
                     </tr>
                 {% endfor %}
@@ -28,5 +28,5 @@
     {% else %}
         <p>No candidates registered yet.</p>
     {% endif %}
-    <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="{% url 'core:hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
 {% endblock %}

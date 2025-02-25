@@ -19,7 +19,7 @@
                     <tr>
                         <td>{{ assignment.assessment.title }}</td>
                         <td>
-                            <a href="{% url 'take_assessment' assignment.id %}" class="btn btn-primary">Take Test</a>
+                            <a href="{% url 'core:take_assessment' assignment.id %}" class="btn btn-primary">Take Test</a>  <!-- Updated to use 'core:take_assessment' -->
                         </td>
                     </tr>
                 {% endfor %}

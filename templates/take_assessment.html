@@ -56,5 +56,5 @@
         {% endfor %}
         <button type="submit" class="btn btn-primary mt-3">Submit Assessment</button>
     </form>
-    <a href="{% url 'candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+    <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>  <!-- Updated to use 'core:candidate_dashboard' -->
 {% endblock %}

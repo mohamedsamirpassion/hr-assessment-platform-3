@@ -23,7 +23,7 @@ def hr_signup(request):
         HRProfile.objects.create(user=user, company_name=company_name)
         user.save()
         login(request, user)
-        return redirect('hr_dashboard')
+        return redirect('core:hr_dashboard')  # Use namespaced URL
     
     return render(request, 'hr_signup.html')
 
@@ -35,7 +35,7 @@ def hr_login(request):
         
         if user is not None and hasattr(user, 'hrprofile'):
             login(request, user)
-            return redirect('hr_dashboard')
+            return redirect('core:hr_dashboard')  # Use namespaced URL
         else:
             messages.error(request, "Invalid credentials or not an HR account.")
             return render(request, 'hr_login.html')
@@ -57,7 +57,7 @@ def candidate_signup(request):
         CandidateProfile.objects.create(user=user, full_name=full_name)
         user.save()
         login(request, user)
-        return redirect('candidate_dashboard')
+        return redirect('core:candidate_dashboard')  # Use namespaced URL
     
     return render(request, 'candidate_signup.html')
 
@@ -69,7 +69,7 @@ def candidate_login(request):
         
         if user is not None and hasattr(user, 'candidateprofile'):
             login(request, user)
-            return redirect('candidate_dashboard')
+            return redirect('core:candidate_dashboard')  # Use namespaced URL
         else:
             messages.error(request, "Invalid credentials or not a Candidate account.")
             return render(request, 'candidate_login.html')
@@ -84,7 +84,7 @@ def hr_dashboard(request):
 def candidate_dashboard(request):
     if not hasattr(request.user, 'candidateprofile'):
         messages.error(request, "Only Candidate users can access this page.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     assignments = AssessmentAssignment.objects.filter(candidate=request.user.candidateprofile, completed=False)
     return render(request, 'candidate_dashboard.html', {'assignments': assignments})
@@ -93,7 +93,7 @@ def candidate_dashboard(request):
 def create_assessment(request):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can create assessments.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     if request.method == 'POST':
         title = request.POST['title']
@@ -144,7 +144,7 @@ def create_assessment(request):
             MatchPair.objects.create(question=question, left_text=left2, right_text=right2)
         
         messages.success(request, "Assessment created successfully!")
-        return redirect('view_assessments')
+        return redirect('core:view_assessments')  # Updated to use 'core:view_assessments'
     
     return render(request, 'create_assessment.html')
 
@@ -152,7 +152,7 @@ def create_assessment(request):
 def view_assessments(request):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can view assessments.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     assessments = Assessment.objects.filter(created_by=request.user)
     return render(request, 'view_assessments.html', {'assessments': assessments})
@@ -161,7 +161,7 @@ def view_assessments(request):
 def view_candidates(request):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can view candidates.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     candidates = CandidateProfile.objects.all()
     return render(request, 'view_candidates.html', {'candidates': candidates})
@@ -170,7 +170,7 @@ def view_candidates(request):
 def assign_assessment(request, candidate_id):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can assign assessments.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     candidate = CandidateProfile.objects.get(id=candidate_id)
     assessments = Assessment.objects.filter(created_by=request.user)
@@ -183,7 +183,7 @@ def assign_assessment(request, candidate_id):
             candidate=candidate
         )
         messages.success(request, f"Assessment '{assessment.title}' assigned to {candidate.user.username}.")
-        return redirect('view_candidates')
+        return redirect('core:view_candidates')  # Use namespaced URL
     
     return render(request, 'assign_assessment.html', {'candidate': candidate, 'assessments': assessments})
 
@@ -191,7 +191,7 @@ def assign_assessment(request, candidate_id):
 def statistics(request):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can view statistics.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     total_assessments = Assessment.objects.filter(created_by=request.user).count()
     total_candidates = CandidateProfile.objects.count()
@@ -216,7 +216,7 @@ def statistics(request):
 def view_results(request):
     if not hasattr(request.user, 'hrprofile'):
         messages.error(request, "Only HR users can view results.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     results = Result.objects.filter(
         assignment__assessment__created_by=request.user
@@ -228,7 +228,7 @@ def view_results(request):
 def take_assessment(request, assignment_id):
     if not hasattr(request.user, 'candidateprofile'):
         messages.error(request, "Only Candidate users can take assessments.")
-        return redirect('home')
+        return redirect('core:home')  # Use namespaced URL
     
     assignment = AssessmentAssignment.objects.get(id=assignment_id, candidate=request.user.candidateprofile)
     questions = assignment.assessment.questions.all()
@@ -286,10 +286,10 @@ def take_assessment(request, assignment_id):
         assignment.completed = True
         assignment.save()
         messages.success(request, f"Assessment completed! Your score: {score}/{total_questions} ({percentage_score:.2f}%)")
-        return redirect('candidate_dashboard')
+        return redirect('core:candidate_dashboard')  # Use namespaced URL
     
     return render(request, 'take_assessment.html', {'assignment': assignment, 'questions': questions})
 
 def logout_view(request):
     logout(request)
-    return redirect('home')
+    return redirect('core:home')  # Use namespaced URL
