@@ -4,7 +4,7 @@
 
 {% block content %}
     <h1>Take Assessment: {{ assignment.assessment.title }}</h1>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% for question in questions %}
             <h3>{{ question.text }}</h3>
@@ -15,6 +15,41 @@
                             <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
                             {{ choice.text }}
                         </label>
+                    </div>
+                {% endfor %}
+            
+            {% elif question.question_type == 'TF' %}
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                    </label>
+                </div>
+            
+            {% elif question.question_type == 'SA' %}
+                <div class="mb-3">
+                    <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                </div>
+            
+            {% elif question.question_type == 'UP' %}
+                <div class="mb-3">
+                    <input type="file" name="question_{{ question.id }}" class="form-control">
+                </div>
+            
+            {% elif question.question_type == 'MA' %}
+                {% for pair in question.match_pairs.all %}
+                    <div class="mb-3">
+                        <label>{{ pair.left_text }}</label>
+                        <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                            <option value="">Select...</option>
+                            {% for other_pair in question.match_pairs.all %}
+                                <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 {% endfor %}
             {% endif %}

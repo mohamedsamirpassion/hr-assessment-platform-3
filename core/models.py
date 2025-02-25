@@ -17,11 +17,9 @@ class CandidateProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} (Candidate)"
 
-# Automatically create profiles when a User is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        # We'll decide HR or Candidate during signup, not here
         pass
 
 @receiver(post_save, sender=User)
@@ -46,6 +44,9 @@ class Question(models.Model):
     QUESTION_TYPES = (
         ('MC', 'Multiple Choice'),
         ('SA', 'Short Answer'),
+        ('TF', 'True/False'),
+        ('UP', 'File Upload'),
+        ('MA', 'Matching'),  # Add more as needed
     )
     question_type = models.CharField(max_length=2, choices=QUESTION_TYPES, default='MC')
 
@@ -60,6 +61,23 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
+class MatchPair(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='match_pairs')
+    left_text = models.CharField(max_length=200)
+    right_text = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.left_text} -> {self.right_text}"
+
+class Result(models.Model):
+    assignment = models.OneToOneField('AssessmentAssignment', on_delete=models.CASCADE)
+    score = models.FloatField(default=0)  # Percentage or raw score
+    completed_at = models.DateTimeField(auto_now_add=True)
+    answers = models.JSONField(default=dict)  # Store question answers
+
+    def __str__(self):
+        return f"Result for {self.assignment.candidate.user.username} - {self.assignment.assessment.title}"
+
 class AssessmentAssignment(models.Model):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE)
     candidate = models.ForeignKey(CandidateProfile, on_delete=models.CASCADE)
@@ -68,12 +86,3 @@ class AssessmentAssignment(models.Model):
 
     def __str__(self):
         return f"{self.candidate.user.username} - {self.assessment.title}"
-
-class Result(models.Model):
-    assignment = models.OneToOneField(AssessmentAssignment, on_delete=models.CASCADE)
-    score = models.FloatField(default=0)  # Percentage or raw score
-    completed_at = models.DateTimeField(auto_now_add=True)
-    answers = models.JSONField(default=dict)  # Store question answers (e.g., {question_id: choice_id})
-
-    def __str__(self):
-        return f"Result for {self.assignment.candidate.user.username} - {self.assignment.assessment.title}"
