@@ -9,6 +9,58 @@ from .models import CandidateProfile
 from .models import Assessment, CandidateProfile
 from .models import AssessmentAssignment
 from .models import Assessment, CandidateProfile, AssessmentAssignment
+from .models import Result
+from .models import Result, AssessmentAssignment
+
+@login_required
+def view_results(request):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can view results.")
+        return redirect('home')
+    
+    # Get all results for assessments created by this HR
+    results = Result.objects.filter(
+        assignment__assessment__created_by=request.user
+    ).select_related('assignment__assessment', 'assignment__candidate__user')
+    
+    return render(request, 'view_results.html', {'results': results})
+
+
+@login_required
+def take_assessment(request, assignment_id):
+    if not hasattr(request.user, 'candidateprofile'):
+        messages.error(request, "Only Candidate users can take assessments.")
+        return redirect('home')
+    
+    assignment = AssessmentAssignment.objects.get(id=assignment_id, candidate=request.user.candidateprofile)
+    questions = assignment.assessment.questions.all()
+    
+    if request.method == 'POST':
+        score = 0
+        answers = {}
+        for question in questions:
+            if question.question_type == 'MC':
+                selected_choice = request.POST.get(f'question_{question.id}')
+                if selected_choice:
+                    choice = Choice.objects.get(id=selected_choice)
+                    answers[question.id] = selected_choice
+                    if choice.is_correct:
+                        score += 1
+        total_questions = questions.count()
+        percentage_score = (score / total_questions) * 100 if total_questions > 0 else 0
+        
+        # Save the result
+        Result.objects.create(
+            assignment=assignment,
+            score=percentage_score,
+            answers=answers
+        )
+        assignment.completed = True
+        assignment.save()
+        messages.success(request, f"Assessment completed! Your score: {score}/{total_questions} ({percentage_score:.2f}%)")
+        return redirect('candidate_dashboard')
+    
+    return render(request, 'take_assessment.html', {'assignment': assignment, 'questions': questions})
 
 @login_required
 def assign_assessment(request, candidate_id):
@@ -198,29 +250,3 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-@login_required
-def take_assessment(request, assignment_id):
-    if not hasattr(request.user, 'candidateprofile'):
-        messages.error(request, "Only Candidate users can take assessments.")
-        return redirect('home')
-    
-    assignment = AssessmentAssignment.objects.get(id=assignment_id, candidate=request.user.candidateprofile)
-    questions = assignment.assessment.questions.all()
-    
-    if request.method == 'POST':
-        # Simple scoring for now (expand later)
-        score = 0
-        for question in questions:
-            if question.question_type == 'MC':
-                selected_choice = request.POST.get(f'question_{question.id}')
-                if selected_choice:
-                    choice = Choice.objects.get(id=selected_choice)
-                    if choice.is_correct:
-                        score += 1
-        # Mark as completed and store results (placeholder for now)
-        assignment.completed = True
-        assignment.save()
-        messages.success(request, f"Assessment completed! Your score: {score}/{questions.count()}")
-        return redirect('candidate_dashboard')
-    
-    return render(request, 'take_assessment.html', {'assignment': assignment, 'questions': questions})

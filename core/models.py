@@ -68,3 +68,12 @@ class AssessmentAssignment(models.Model):
 
     def __str__(self):
         return f"{self.candidate.user.username} - {self.assessment.title}"
+
+class Result(models.Model):
+    assignment = models.OneToOneField(AssessmentAssignment, on_delete=models.CASCADE)
+    score = models.FloatField(default=0)  # Percentage or raw score
+    completed_at = models.DateTimeField(auto_now_add=True)
+    answers = models.JSONField(default=dict)  # Store question answers (e.g., {question_id: choice_id})
+
+    def __str__(self):
+        return f"Result for {self.assignment.candidate.user.username} - {self.assignment.assessment.title}"
