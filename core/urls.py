@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'core'  # Ensure this is present for namespace
+
 urlpatterns = [
     path('', views.home, name='home'),
     path('hr/signup/', views.hr_signup, name='hr_signup'),

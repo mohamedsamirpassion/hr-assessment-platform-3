@@ -3,15 +3,23 @@
 {% block title %}HR Dashboard{% endblock %}
 
 {% block content %}
-    <h1>HR Dashboard</h1>
-    <p>Welcome, {{ request.user.username }} ({{ request.user.hrprofile.company_name }})</p>
-    <div class="nav mb-3">
-        <a href="{% url 'create_assessment' %}" class="btn btn-primary me-2">Create Assessment</a>
-        <a href="{% url 'view_assessments' %}" class="btn btn-secondary me-2">View Assessments</a>
-        <a href="{% url 'view_candidates' %}" class="btn btn-secondary me-2">View Candidates</a>
-        <a href="{% url 'statistics' %}" class="btn btn-secondary me-2">Statistics</a>
-        <a href="{% url 'view_results' %}" class="btn btn-secondary me-2">View Results</a>  <!-- New link -->
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-3">HR Dashboard</h1>
+            <p class="mb-4">Welcome, {{ request.user.username }} ({{ request.user.hrprofile.company_name }})</p>
+            <div class="nav mb-3">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'core:create_assessment' %}" class="btn btn-primary me-2"><i class="fas fa-plus"></i> Create Assessment</a>
+                    <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary me-2"><i class="fas fa-list"></i> View Assessments</a>
+                    <a href="{% url 'core:view_candidates' %}" class="btn btn-secondary me-2"><i class="fas fa-users"></i> View Candidates</a>
+                    <a href="{% url 'core:statistics' %}" class="btn btn-secondary me-2"><i class="fas fa-chart-bar"></i> Statistics</a>
+                    <a href="{% url 'core:view_results' %}" class="btn btn-secondary me-2"><i class="fas fa-check"></i> View Results</a>
+                </div>
+            </div>
+            <div class="card p-3">
+                <h2 class="card-title">Your Dashboard</h2>
+                <p class="card-text">This is where you'll manage assessments, candidates, and more. Pick an option above!</p>
+            </div>
+        </div>
     </div>
-    <h2>Your Dashboard</h2>
-    <p>This is where you'll manage assessments, candidates, and more. Pick an option above!</p>
 {% endblock %}
