@@ -23,6 +23,7 @@ urlpatterns = [
     path('candidate/take-assessment/<int:assignment_id>/', views.take_assessment, name='take_assessment'),
     path('hr/edit-assessment/<int:assessment_id>/', views.edit_assessment, name='edit_assessment'),  # New
     path('hr/delete-assessment/<int:assessment_id>/', views.delete_assessment, name='delete_assessment'),  # New
+    path('hr/create-question/<int:assessment_id>/', views.create_question, name='create_question'),
 ]
 
 # Serve media files during development

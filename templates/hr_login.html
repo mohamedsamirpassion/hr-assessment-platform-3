@@ -20,6 +20,6 @@
             <input type="password" name="password" id="password" class="form-control" required>
         </div>
         <button type="submit" class="btn btn-primary">Login</button>
+        <a href="{% url 'core:home' %}" class="btn btn-secondary mt-2">Back to Home</a>  <!-- Updated to use 'core:home' -->
     </form>
-    <a href="{% url 'home' %}" class="btn btn-secondary mt-2">Back to Home</a>
 {% endblock %}

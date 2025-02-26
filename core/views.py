@@ -281,6 +281,51 @@ def take_assessment(request, assignment_id):
     
     return render(request, 'take_assessment.html', {'assignment': assignment, 'questions': questions})
 
+@login_required
+def create_question(request, assessment_id):
+    if not hasattr(request.user, 'hrprofile'):
+        messages.error(request, "Only HR users can create questions.")
+        return redirect('core:home')
+    
+    assessment = get_object_or_404(Assessment, id=assessment_id, created_by=request.user)
+    if request.method == 'POST':
+        question_type = request.POST.get('question_type')
+        question_text = request.POST.get('question_text')
+        question = Question.objects.create(
+            assessment=assessment,
+            text=question_text,
+            question_type=question_type
+        )
+        if question_type == 'MC':
+            choice1 = request.POST.get('choice1')
+            choice2 = request.POST.get('choice2')
+            choice3 = request.POST.get('choice3')
+            correct_choice = request.POST.get('correct_choice')
+            if choice1 and choice2 and choice3 and correct_choice:
+                Choice.objects.create(question=question, text=choice1, is_correct=(correct_choice == '1'))
+                Choice.objects.create(question=question, text=choice2, is_correct=(correct_choice == '2'))
+                Choice.objects.create(question=question, text=choice3, is_correct=(correct_choice == '3'))
+        elif question_type == 'TF':
+            answer = request.POST.get('true_false_answer')
+            if answer:
+                Choice.objects.create(question=question, text='True', is_correct=(answer.lower() == 'true'))
+                Choice.objects.create(question=question, text='False', is_correct=(answer.lower() == 'false'))
+        elif question_type == 'SA':
+            pass  # No additional fields needed
+        elif question_type == 'UP':
+            pass  # No additional fields needed
+        elif question_type == 'MA':
+            left1 = request.POST.get('left1')
+            right1 = request.POST.get('right1')
+            left2 = request.POST.get('left2')
+            right2 = request.POST.get('right2')
+            if left1 and right1 and left2 and right2:
+                MatchPair.objects.create(question=question, left_text=left1, right_text=right1)
+                MatchPair.objects.create(question=question, left_text=left2, right_text=right2)
+        messages.success(request, "Question created successfully!")
+        return redirect('core:view_assessments')
+    return render(request, 'create_question.html', {'assessment': assessment})
+
 def logout_view(request):
     logout(request)
     return redirect('core:home')
