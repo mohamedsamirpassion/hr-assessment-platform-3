@@ -222,7 +222,8 @@ def take_assessment(request, assignment_id):
         return redirect('core:home')
     
     assignment = AssessmentAssignment.objects.get(id=assignment_id, candidate=request.user.candidateprofile)
-    questions = assignment.assessment.questions.all()
+    assessment = assignment.assessment
+    questions = assessment.questions.all()
     
     if request.method == 'POST':
         score = 0
@@ -279,7 +280,14 @@ def take_assessment(request, assignment_id):
         messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
         return redirect('core:candidate_dashboard')
     
-    return render(request, 'take_assessment.html', {'assignment': assignment, 'questions': questions})
+    # Pass the time_limit to the template for the timer
+    context = {
+        'assignment': assignment,
+        'questions': questions,
+        'time_limit': assessment.time_limit  # Add time_limit to context
+    }
+    return render(request, 'take_assessment.html', context)
+
 
 @login_required
 def create_question(request, assessment_id):

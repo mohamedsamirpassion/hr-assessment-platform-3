@@ -4,6 +4,17 @@
 
 {% block content %}
     <h1>Take Assessment: {{ assignment.assessment.title }}</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Timer Display -->
+    <div id="timer" class="alert alert-info mb-3" style="display: none;">
+        Time remaining: <span id="time-remaining">00:00</span>
+    </div>
+    
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% for question in questions %}
@@ -56,5 +67,39 @@
         {% endfor %}
         <button type="submit" class="btn btn-primary mt-3">Submit Assessment</button>
     </form>
-    <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>  <!-- Updated to use 'core:candidate_dashboard' -->
+    <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+
+    <!-- JavaScript for Timer -->
+    <script>
+        // Get time limit from Django template (in minutes)
+        const timeLimitMinutes = {{ time_limit|default:0 }};
+        if (timeLimitMinutes > 0) {
+            document.getElementById('timer').style.display = 'block';
+            let timeLeft = timeLimitMinutes * 60; // Convert to seconds
+            
+            function updateTimer() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('time-remaining').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 30) { // Warning 30 seconds before expiration
+                    document.getElementById('timer').className = 'alert alert-warning';
+                    if (timeLeft === 30) {
+                        alert('Warning: 30 seconds remaining before the assessment auto-submits!');
+                    }
+                }
+                
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    setTimeout(updateTimer, 1000);
+                } else {
+                    document.getElementById('timer').className = 'alert alert-danger';
+                    document.querySelector('form').submit(); // Auto-submit when time runs out
+                }
+            }
+            
+            updateTimer(); // Start the timer
+        }
+    </script>
 {% endblock %}
