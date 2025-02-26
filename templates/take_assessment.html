@@ -15,63 +15,271 @@
         Time remaining: <span id="time-remaining">00:00</span>
     </div>
     
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% for question in questions %}
-            <h3>{{ question.text }}</h3>
-            {% if question.question_type == 'MC' %}
-                {% for choice in question.choices.all %}
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
-                            {{ choice.text }}
-                        </label>
-                    </div>
-                {% endfor %}
-            
-            {% elif question.question_type == 'TF' %}
-                <div class="form-check">
-                    <label class="form-check-label">
-                        <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
-                    </label>
-                </div>
-                <div class="form-check">
-                    <label class="form-check-label">
-                        <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
-                    </label>
-                </div>
-            
-            {% elif question.question_type == 'SA' %}
-                <div class="mb-3">
-                    <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
-                </div>
-            
-            {% elif question.question_type == 'UP' %}
-                <div class="mb-3">
-                    <input type="file" name="question_{{ question.id }}" class="form-control">
-                </div>
-            
-            {% elif question.question_type == 'MA' %}
-                {% for pair in question.match_pairs.all %}
-                    <div class="mb-3">
-                        <label>{{ pair.left_text }}</label>
-                        <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
-                            <option value="">Select...</option>
-                            {% for other_pair in question.match_pairs.all %}
-                                <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+    {% if layout == 'all_one_page' or layout == 'all_sections' %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if layout == 'all_sections' %}
+                {% for section in sections %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3>{{ section.title }}</h3>
+                        </div>
+                        <div class="card-body">
+                            {% for question in section.questions.all %}
+                                <h4>{{ question.text }}</h4>
+                                {% if question.question_type == 'MC' %}
+                                    {% for choice in question.choices.all %}
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                                                {{ choice.text }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                
+                                {% elif question.question_type == 'TF' %}
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                                        </label>
+                                    </div>
+                                
+                                {% elif question.question_type == 'SA' %}
+                                    <div class="mb-3">
+                                        <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                                    </div>
+                                
+                                {% elif question.question_type == 'UP' %}
+                                    <div class="mb-3">
+                                        <input type="file" name="question_{{ question.id }}" class="form-control">
+                                    </div>
+                                
+                                {% elif question.question_type == 'MA' %}
+                                    {% for pair in question.match_pairs.all %}
+                                        <div class="mb-3">
+                                            <label>{{ pair.left_text }}</label>
+                                            <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                                                <option value="">Select...</option>
+                                                {% for other_pair in question.match_pairs.all %}
+                                                    <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
                             {% endfor %}
-                        </select>
+                        </div>
                     </div>
+                {% empty %}
+                    <p>No questions in this section.</p>
+                {% endfor %}
+            {% else %}
+                {% for question in questions %}
+                    <h3>{{ question.text }}</h3>
+                    {% if question.question_type == 'MC' %}
+                        {% for choice in question.choices.all %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                                    {{ choice.text }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    
+                    {% elif question.question_type == 'TF' %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                            </label>
+                        </div>
+                    
+                    {% elif question.question_type == 'SA' %}
+                        <div class="mb-3">
+                            <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                        </div>
+                    
+                    {% elif question.question_type == 'UP' %}
+                        <div class="mb-3">
+                            <input type="file" name="question_{{ question.id }}" class="form-control">
+                        </div>
+                    
+                    {% elif question.question_type == 'MA' %}
+                        {% for pair in question.match_pairs.all %}
+                            <div class="mb-3">
+                                <label>{{ pair.left_text }}</label>
+                                <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                                    <option value="">Select...</option>
+                                    {% for other_pair in question.match_pairs.all %}
+                                        <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
             {% endif %}
-        {% endfor %}
-        <button type="submit" class="btn btn-primary mt-3">Submit Assessment</button>
-    </form>
-    <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+            <button type="submit" class="btn btn-primary mt-3">Submit Assessment</button>
+        </form>
+        <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+    
+    {% else %}
+        <!-- Placeholder for pagination or navigation -->
+        {% if layout == 'each_question' and question %}
+            <h3>{{ question.text }}</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if question.question_type == 'MC' %}
+                    {% for choice in question.choices.all %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                                {{ choice.text }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                
+                {% elif question.question_type == 'TF' %}
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                        </label>
+                    </div>
+                
+                {% elif question.question_type == 'SA' %}
+                    <div class="mb-3">
+                        <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                    </div>
+                
+                {% elif question.question_type == 'UP' %}
+                    <div class="mb-3">
+                        <input type="file" name="question_{{ question.id }}" class="form-control">
+                    </div>
+                
+                {% elif question.question_type == 'MA' %}
+                    {% for pair in question.match_pairs.all %}
+                        <div class="mb-3">
+                            <label>{{ pair.left_text }}</label>
+                            <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                                <option value="">Select...</option>
+                                {% for other_pair in question.match_pairs.all %}
+                                    <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="mt-3">
+                    {% if navigation == 'sequential' %}
+                        {% with questions=assessment.questions.all %}
+                            {% if questions|index:forloop.counter0|add:"-1" %}
+                                <a href="{% url 'core:take_assessment_question' assignment.id questions|index:forloop.counter0|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
+                            {% endif %}
+                            {% if not forloop.last %}
+                                <a href="{% url 'core:take_assessment_question' assignment.id questions|index:forloop.counter0|add:'1'.id %}" class="btn btn-secondary">Next</a>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                    {% endif %}
+                </div>
+            </form>
+            <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+        
+        {% elif layout == 'each_section' and section %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>{{ section.title }}</h3>
+                </div>
+                <div class="card-body">
+                    {% for question in questions %}
+                        <h4>{{ question.text }}</h4>
+                        {% if question.question_type == 'MC' %}
+                            {% for choice in question.choices.all %}
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                                        {{ choice.text }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        
+                        {% elif question.question_type == 'TF' %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                                </label>
+                            </div>
+                        
+                        {% elif question.question_type == 'SA' %}
+                            <div class="mb-3">
+                                <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                            </div>
+                        
+                        {% elif question.question_type == 'UP' %}
+                            <div class="mb-3">
+                                <input type="file" name="question_{{ question.id }}" class="form-control">
+                            </div>
+                        
+                        {% elif question.question_type == 'MA' %}
+                            {% for pair in question.match_pairs.all %}
+                                <div class="mb-3">
+                                    <label>{{ pair.left_text }}</label>
+                                    <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                                        <option value="">Select...</option>
+                                        {% for other_pair in question.match_pairs.all %}
+                                            <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="mt-3">
+                {% if navigation == 'sequential' %}
+                    {% with sections=assessment.sections.all %}
+                        {% if sections|index:forloop.counter0|add:"-1" %}
+                            <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
+                        {% endif %}
+                        {% if not forloop.last %}
+                            <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'1'.id %}" class="btn btn-secondary">Next</a>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                        {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                {% endif %}
+            </div>
+            <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
+        {% endif %}
+    {% endif %}
 
-    <!-- JavaScript for Timer -->
+    <!-- JavaScript for Timer (from previous step, unchanged) -->
     <script>
-        // Get time limit from Django template (in minutes)
         const timeLimitMinutes = {{ time_limit|default:0 }};
         if (timeLimitMinutes > 0) {
             document.getElementById('timer').style.display = 'block';

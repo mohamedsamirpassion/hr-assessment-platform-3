@@ -21,9 +21,11 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('hr/assign-assessment/<int:candidate_id>/', views.assign_assessment, name='assign_assessment'),
     path('candidate/take-assessment/<int:assignment_id>/', views.take_assessment, name='take_assessment'),
-    path('hr/edit-assessment/<int:assessment_id>/', views.edit_assessment, name='edit_assessment'),  # New
-    path('hr/delete-assessment/<int:assessment_id>/', views.delete_assessment, name='delete_assessment'),  # New
+    path('hr/edit-assessment/<int:assessment_id>/', views.edit_assessment, name='edit_assessment'),
+    path('hr/delete-assessment/<int:assessment_id>/', views.delete_assessment, name='delete_assessment'),
     path('hr/create-question/<int:assessment_id>/', views.create_question, name='create_question'),
+    path('candidate/take-assessment/<int:assignment_id>/<int:question_id>/', views.take_assessment, name='take_assessment_question'),  # New
+    path('candidate/take-assessment/<int:assignment_id>/<int:section_id>/', views.take_assessment, name='take_assessment_section'),  # New
 ]
 
 # Serve media files during development

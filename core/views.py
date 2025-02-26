@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Assessment, Question, Choice, MatchPair, HRProfile, CandidateProfile, Result, AssessmentAssignment
 from .forms import AssessmentForm  # Ensure this import exists
+from .models import AssessmentAssignment, Question, Choice, MatchPair, Result
+
 
 def home(request):
     return render(request, 'home.html')
@@ -216,15 +218,20 @@ def view_results(request):
     return render(request, 'view_results.html', {'results': results})
 
 @login_required
-def take_assessment(request, assignment_id):
+def take_assessment(request, assignment_id, section_id=None, question_id=None):
     if not hasattr(request.user, 'candidateprofile'):
         messages.error(request, "Only Candidate users can take assessments.")
         return redirect('core:home')
     
-    assignment = AssessmentAssignment.objects.get(id=assignment_id, candidate=request.user.candidateprofile)
+    assignment = get_object_or_404(AssessmentAssignment, id=assignment_id, candidate=request.user.candidateprofile)
     assessment = assignment.assessment
-    questions = assessment.questions.all()
+    questions = assessment.questions.all().order_by('section__order', 'id')  # Order by section and question ID
     
+    # Handle layout and navigation settings
+    layout = assessment.layout
+    navigation = assessment.navigation
+    time_limit = assessment.time_limit
+
     if request.method == 'POST':
         score = 0
         answers = {}
@@ -280,14 +287,72 @@ def take_assessment(request, assignment_id):
         messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
         return redirect('core:candidate_dashboard')
     
-    # Pass the time_limit to the template for the timer
+    # Determine which questions/sections to display based on layout
+    sections = assessment.sections.all().order_by('order')
+    if layout in ['all_one_page', 'all_sections']:
+        # Show all questions or sections on one page
+        context = {
+            'assignment': assignment,
+            'questions': questions,
+            'sections': sections,
+            'time_limit': time_limit,
+            'layout': layout,
+            'navigation': navigation
+        }
+        return render(request, 'take_assessment.html', context)
+    elif layout in ['each_question', 'each_section']:
+        # Handle pagination or separate pages
+        if layout == 'each_question':
+            if question_id:
+                question = get_object_or_404(Question, id=question_id, assessment=assessment)
+                context = {
+                    'assignment': assignment,
+                    'question': question,
+                    'time_limit': time_limit,
+                    'layout': layout,
+                    'navigation': navigation
+                }
+                return render(request, 'take_assessment_question.html', context)
+            else:
+                # Redirect to the first question
+                first_question = questions.first()
+                if first_question:
+                    return redirect('core:take_assessment_question', assignment_id=assignment_id, question_id=first_question.id)
+                else:
+                    messages.error(request, "No questions available for this assessment.")
+                    return redirect('core:candidate_dashboard')
+        elif layout == 'each_section':
+            if section_id:
+                section = get_object_or_404(Section, id=section_id, assessment=assessment)
+                section_questions = section.questions.all()
+                context = {
+                    'assignment': assignment,
+                    'section': section,
+                    'questions': section_questions,
+                    'time_limit': time_limit,
+                    'layout': layout,
+                    'navigation': navigation
+                }
+                return render(request, 'take_assessment_section.html', context)
+            else:
+                # Redirect to the first section
+                first_section = sections.first()
+                if first_section:
+                    return redirect('core:take_assessment_section', assignment_id=assignment_id, section_id=first_section.id)
+                else:
+                    messages.error(request, "No sections available for this assessment.")
+                    return redirect('core:candidate_dashboard')
+
+    # Default to all questions on one page if layout is invalid
     context = {
         'assignment': assignment,
         'questions': questions,
-        'time_limit': assessment.time_limit  # Add time_limit to context
+        'sections': sections,
+        'time_limit': time_limit,
+        'layout': layout,
+        'navigation': navigation
     }
     return render(request, 'take_assessment.html', context)
-
 
 @login_required
 def create_question(request, assessment_id):

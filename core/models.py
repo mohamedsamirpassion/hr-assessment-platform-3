@@ -19,7 +19,7 @@ class CandidateProfile(models.Model):
 class Assessment(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='assessments/', null=True, blank=True)  # For image/icon
+    image = models.ImageField(upload_to='assessments/', null=True, blank=True)
     open_date = models.DateTimeField(default=timezone.now)
     close_date = models.DateTimeField(null=True, blank=True)
     time_limit = models.PositiveIntegerField(help_text="Time limit in minutes", null=True, blank=True)
@@ -67,8 +67,20 @@ class Assessment(models.Model):
     def __str__(self):
         return self.title
 
+class Section(models.Model):
+    assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name='sections')
+    title = models.CharField(max_length=200)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.title} (Section {self.order})"
+
 class Question(models.Model):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name='questions')
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)  # Optional section
     text = models.CharField(max_length=500)
     QUESTION_TYPES = (
         ('MC', 'Multiple Choice'),
@@ -78,10 +90,17 @@ class Question(models.Model):
         ('MA', 'Matching'),
     )
     question_type = models.CharField(max_length=2, choices=QUESTION_TYPES, default='MC')
-    points = models.PositiveIntegerField(default=1, help_text="Points for this question")
+    points = models.PositiveIntegerField(default=1, help_text="Points for this question (0 for no points, manual grading)")
+    is_auto_graded = models.BooleanField(
+        default=True, 
+        help_text="Whether this question is auto-graded or manually graded (e.g., MC/TF are auto, SA/UP are manual)"
+    )
 
     def __str__(self):
         return f"{self.text} ({self.get_question_type_display()})"
+
+    def get_total_points(self):
+        return self.points if self.points > 0 else 0
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
