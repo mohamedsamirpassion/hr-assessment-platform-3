@@ -266,7 +266,7 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
                 correct_pairs = {pair.id: (pair.left_text, pair.right_text) for pair in question.match_pairs.all()}
                 user_pairs = {}
                 for pair in question.match_pairs.all():
-                    user_answer = request.POST.get(f'question_{question.id}_pair_{{pair.id}}')
+                    user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
                     if user_answer:
                         user_pairs[pair.id] = user_answer
                 answers[question.id] = user_pairs
