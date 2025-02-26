@@ -72,15 +72,21 @@
     </div>
     <div class="mt-3">
         {% if navigation == 'sequential' %}
-            {% with sections=assessment.sections.all %}
-                {% if sections|index:forloop.counter0|add:"-1" and section.id != sections.first.id %}
-                    <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
-                {% endif %}
-                {% if section.id != sections.last.id %}
-                    <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'1'.id %}" class="btn btn-secondary">Next</a>
-                {% else %}
-                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
-                {% endif %}
+            {% with sections=assessment.sections.all|dictsort:"id" %}
+                {% for s in sections %}
+                    {% if s.id == section.id %}
+                        {% if forloop.first %}
+                            <!-- No Previous for first section -->
+                        {% else %}
+                            <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
+                        {% endif %}
+                        {% if forloop.last %}
+                            <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                        {% else %}
+                            <a href="{% url 'core:take_assessment_section' assignment.id sections|index:forloop.counter0|add:'1'.id %}" class="btn btn-secondary">Next</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
             {% endwith %}
         {% else %}
             <button type="submit" class="btn btn-primary">Submit Assessment</button>
@@ -88,7 +94,7 @@
     </div>
     <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>
 
-    <!-- JavaScript for Timer (unchanged from take_assessment.html) -->
+    <!-- JavaScript for Timer (unchanged) -->
     <script>
         const timeLimitMinutes = {{ time_limit|default:0 }};
         if (timeLimitMinutes > 0) {
@@ -101,21 +107,19 @@
                 document.getElementById('time-remaining').textContent = 
                     `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
-                if (timeLimitMinutes > 0) {
-                    if (timeLeft <= 30) { // Warning 30 seconds before expiration
-                        document.getElementById('timer').className = 'alert alert-warning';
-                        if (timeLeft === 30) {
-                            alert('Warning: 30 seconds remaining before the assessment auto-submits!');
-                        }
+                if (timeLeft <= 30) { // Warning 30 seconds before expiration
+                    document.getElementById('timer').className = 'alert alert-warning';
+                    if (timeLeft === 30) {
+                        alert('Warning: 30 seconds remaining before the assessment auto-submits!');
                     }
+                }
                 
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        setTimeout(updateTimer, 1000);
-                    } else {
-                        document.getElementById('timer').className = 'alert alert-danger';
-                        document.querySelector('form').submit(); // Auto-submit when time runs out
-                    }
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    setTimeout(updateTimer, 1000);
+                } else {
+                    document.getElementById('timer').className = 'alert alert-danger';
+                    document.querySelector('form').submit(); // Auto-submit when time runs out
                 }
             }
             

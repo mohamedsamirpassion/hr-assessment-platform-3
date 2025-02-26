@@ -3,10 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Assessment, Question, Choice, MatchPair, HRProfile, CandidateProfile, Result, AssessmentAssignment
+from .models import Assessment, Question, Choice, MatchPair, HRProfile, CandidateProfile, Result, AssessmentAssignment, Section
 from .forms import AssessmentForm  # Ensure this import exists
-from .models import AssessmentAssignment, Question, Choice, MatchPair, Result
-
 
 def home(request):
     return render(request, 'home.html')
@@ -268,7 +266,7 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
                 correct_pairs = {pair.id: (pair.left_text, pair.right_text) for pair in question.match_pairs.all()}
                 user_pairs = {}
                 for pair in question.match_pairs.all():
-                    user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
+                    user_answer = request.POST.get(f'question_{question.id}_pair_{{pair.id}}')
                     if user_answer:
                         user_pairs[pair.id] = user_answer
                 answers[question.id] = user_pairs
@@ -362,13 +360,33 @@ def create_question(request, assessment_id):
     
     assessment = get_object_or_404(Assessment, id=assessment_id, created_by=request.user)
     if request.method == 'POST':
+        section_id = request.POST.get('section')
+        section_title = request.POST.get('section_title')
+        section_order = request.POST.get('section_order', 0)
         question_type = request.POST.get('question_type')
         question_text = request.POST.get('question_text')
+        points = request.POST.get('points', 1)
+        is_auto_graded = request.POST.get('is_auto_graded', 'on') == 'on'
+
+        # Create or get the section based on selection or new input
+        if section_id:
+            section = get_object_or_404(Section, id=section_id, assessment=assessment)
+        else:
+            section, created = Section.objects.get_or_create(
+                assessment=assessment,
+                title=section_title,
+                defaults={'order': section_order}
+            )
+
         question = Question.objects.create(
             assessment=assessment,
+            section=section,
             text=question_text,
-            question_type=question_type
+            question_type=question_type,
+            points=points if points else 0,
+            is_auto_graded=is_auto_graded
         )
+        
         if question_type == 'MC':
             choice1 = request.POST.get('choice1')
             choice2 = request.POST.get('choice2')
@@ -384,9 +402,9 @@ def create_question(request, assessment_id):
                 Choice.objects.create(question=question, text='True', is_correct=(answer.lower() == 'true'))
                 Choice.objects.create(question=question, text='False', is_correct=(answer.lower() == 'false'))
         elif question_type == 'SA':
-            pass  # No additional fields needed
+            pass  # Manual grading for SA questions
         elif question_type == 'UP':
-            pass  # No additional fields needed
+            pass  # Manual grading for UP questions
         elif question_type == 'MA':
             left1 = request.POST.get('left1')
             right1 = request.POST.get('right1')
@@ -397,7 +415,10 @@ def create_question(request, assessment_id):
                 MatchPair.objects.create(question=question, left_text=left2, right_text=right2)
         messages.success(request, "Question created successfully!")
         return redirect('core:view_assessments')
-    return render(request, 'create_question.html', {'assessment': assessment})
+    context = {
+        'assessment': assessment,
+    }
+    return render(request, 'create_question.html', context)
 
 def logout_view(request):
     logout(request)

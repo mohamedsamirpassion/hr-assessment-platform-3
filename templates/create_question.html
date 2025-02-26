@@ -12,6 +12,25 @@
     <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
         <div class="mb-3">
+            <label for="section" class="form-label">Select or Create Section:</label>
+            <select name="section" id="section" class="form-control">
+                <option value="">-- Create New Section --</option>
+                {% for existing_section in assessment.sections.all %}
+                    <option value="{{ existing_section.id }}">{{ existing_section.title }} (Order: {{ existing_section.order }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="new_section_fields" style="display: none;">
+            <div class="mb-3">
+                <label for="section_title" class="form-label">New Section Title (e.g., Listening, Reading):</label>
+                <input type="text" name="section_title" id="section_title" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="section_order" class="form-label">Section Order (e.g., 1, 2, 3):</label>
+                <input type="number" name="section_order" id="section_order" class="form-control" min="1" value="1">
+            </div>
+        </div>
+        <div class="mb-3">
             <label for="question_type" class="form-label">Question Type:</label>
             <select name="question_type" id="question_type" class="form-control" required onchange="showQuestionFields()">
                 <option value="MC">Multiple Choice</option>
@@ -20,6 +39,14 @@
                 <option value="UP">File Upload</option>
                 <option value="MA">Matching</option>
             </select>
+        </div>
+        <div class="mb-3">
+            <label for="points" class="form-label">Points for this Question (0 for no points, manual grading):</label>
+            <input type="number" name="points" id="points" class="form-control" min="0" value="1">
+        </div>
+        <div class="form-check mb-3">
+            <input type="checkbox" name="is_auto_graded" id="is_auto_graded" class="form-check-input" checked>
+            <label for="is_auto_graded" class="form-check-label">Auto-Graded (uncheck for manual grading)</label>
         </div>
         <div id="mc_fields" class="question-fields">
             <div class="mb-3">
@@ -31,7 +58,7 @@
                 <input type="text" name="choice1" id="choice1" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label for="choice2" class="form-label">Choice 2:</label>
+                <label for "choice2" class="form-label">Choice 2:</label>
                 <input type="text" name="choice2" id="choice2" class="form-control" required>
             </div>
             <div class="mb-3">
@@ -86,6 +113,16 @@
     <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary mt-2">Back to Assessments</a>
 
     <script>
+        // Show new section fields if "Create New Section" is selected
+        document.getElementById('section').addEventListener('change', function() {
+            const newSectionFields = document.getElementById('new_section_fields');
+            if (this.value === '') {
+                newSectionFields.style.display = 'block';
+            } else {
+                newSectionFields.style.display = 'none';
+            }
+        });
+
         function showQuestionFields() {
             const questionType = document.getElementById('question_type').value;
             const fields = document.getElementsByClassName('question-fields');
