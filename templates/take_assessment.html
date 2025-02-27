@@ -203,12 +203,16 @@
                                     {% if forloop.first %}
                                         <!-- No Previous for first question -->
                                     {% else %}
-                                        <a href="{% url 'core:take_assessment_question' assignment.id questions|first|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
+                                        {% with prev_question=questions|slice:forloop.counter0|add:"-1" %}
+                                            <a href="{% url 'core:take_assessment_question' assignment.id prev_question.0.id %}" class="btn btn-secondary">Previous</a>
+                                        {% endwith %}
                                     {% endif %}
                                     {% if forloop.last %}
                                         <button type="submit" class="btn btn-primary">Submit Assessment</button>
                                     {% else %}
-                                        <a href="{% url 'core:take_assessment_question' assignment.id questions|next|add:'1'.id %}" class="btn btn-secondary">Next</a>
+                                        {% with next_question=questions|slice:forloop.counter0|add:"1" %}
+                                            <a href="{% url 'core:take_assessment_question' assignment.id next_question.0.id %}" class="btn btn-secondary">Next</a>
+                                        {% endwith %}
                                     {% endif %}
                                 {% endif %}
                             {% endfor %}
@@ -284,12 +288,16 @@
                                 {% if forloop.first %}
                                     <!-- No Previous for first section -->
                                 {% else %}
-                                    <a href="{% url 'core:take_assessment_section' assignment.id sections|first|add:'-1'.id %}" class="btn btn-secondary">Previous</a>
+                                    {% with prev_section=sections|slice:forloop.counter0|add:"-1" %}
+                                        <a href="{% url 'core:take_assessment_section' assignment.id prev_section.0.id %}" class="btn btn-secondary">Previous</a>
+                                    {% endwith %}
                                 {% endif %}
                                 {% if forloop.last %}
                                     <button type="submit" class="btn btn-primary">Submit Assessment</button>
                                 {% else %}
-                                    <a href="{% url 'core:take_assessment_section' assignment.id sections|next|add:'1'.id %}" class="btn btn-secondary">Next</a>
+                                    {% with next_section=sections|slice:forloop.counter0|add:"1" %}
+                                        <a href="{% url 'core:take_assessment_section' assignment.id next_section.0.id %}" class="btn btn-secondary">Next</a>
+                                    {% endwith %}
                                 {% endif %}
                             {% endif %}
                         {% endfor %}
