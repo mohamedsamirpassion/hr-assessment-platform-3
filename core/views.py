@@ -235,81 +235,16 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
         request.session['answers'] = {}
 
     if request.method == 'POST':
-        # Check if it's a per-question submission or final assessment submission
-        question_id = request.POST.get('question_id')
-        if question_id:
-            # Per-question submission
-            for question in questions:
-                if str(question.id) == question_id:
-                    if question.question_type == 'MC':
-                        selected_choice = request.POST.get(f'question_{question.id}')
-                        if selected_choice:
-                            request.session['answers'][question.id] = selected_choice
-                    elif question.question_type == 'TF':
-                        selected_choice = request.POST.get(f'question_{question.id}')
-                        if selected_choice:
-                            request.session['answers'][question.id] = selected_choice
-                    elif question.question_type == 'SA':
-                        answer = request.POST.get(f'question_{question.id}')
-                        if answer:
-                            request.session['answers'][question.id] = answer
-                    elif question.question_type == 'UP':
-                        file = request.FILES.get(f'question_{question.id}')
-                        if file:
-                            request.session['answers'][question.id] = file.name  # Store filename for now
-                    elif question.question_type == 'MA':
-                        user_pairs = {}
-                        for pair in question.match_pairs.all():
-                            user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
-                            if user_answer:
-                                user_pairs[pair.id] = user_answer
-                        request.session['answers'][question.id] = user_pairs
-                    messages.success(request, f"Answer for question '{question.text}' submitted successfully!")
-                    request.session.modified = True  # Ensure session is updated
-                    break
-            # Redirect back to the same page or the next question if sequential
-            if layout == 'each_question' and navigation == 'sequential' and question_id:
-                current_question = get_object_or_404(Question, id=question_id, assessment=assessment)
-                next_question = questions.filter(id__gt=current_question.id).order_by('id').first()
-                if next_question:
-                    return redirect('core:take_assessment_question', assignment_id=assignment_id, question_id=next_question.id)
-                return render(request, 'take_assessment_question.html', {
-                    'assignment': assignment,
-                    'question': current_question,
-                    'time_limit': time_limit,
-                    'layout': layout,
-                    'navigation': navigation
-                })
-            elif layout == 'each_section' and navigation == 'sequential' and section_id:
-                current_section = get_object_or_404(Section, id=section_id, assessment=assessment)
-                next_section = assessment.sections.filter(order__gt=current_section.order).order_by('order').first()
-                if next_section:
-                    return redirect('core:take_assessment_section', assignment_id=assignment_id, section_id=next_section.id)
-                return render(request, 'take_assessment_section.html', {
-                    'assignment': assignment,
-                    'section': current_section,
-                    'questions': current_section.questions.all(),
-                    'time_limit': time_limit,
-                    'layout': layout,
-                    'navigation': navigation
-                })
-            return render(request, 'take_assessment.html', {
-                'assignment': assignment,
-                'questions': questions,
-                'sections': assessment.sections.all().order_by('order'),
-                'time_limit': time_limit,
-                'layout': layout,
-                'navigation': navigation
-            })
-        else:
-            # Final assessment submission
-            score = 0
-            answers = request.session.get('answers', {})
-            total_questions = questions.count()
-            
-            for question in questions:
-                if question.id in answers:
-                    answer = answers[question.id]
+        # Final assessment submission
+        answers = request.session.get('answers', {})
+        score = 0
+        total_questions = questions.count()
+        
+        for question in questions:
+            if str(question.id) in request.POST and question.id in answers:
+                answer = request.POST.get(f'question_{question.id}')
+                if answer:
+                    answers[question.id] = answer  # Update answer in session
                     if question.is_auto_graded:
                         if question.question_type == 'MC':
                             try:
@@ -324,11 +259,23 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
                                 if choice.is_correct:
                                     score += question.points
                         elif question.question_type == 'MA':
+                            user_pairs = {}
+                            for pair in question.match_pairs.all():
+                                user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
+                                if user_answer:
+                                    user_pairs[pair.id] = user_answer
+                            answers[question.id] = user_pairs
                             correct_pairs = {pair.id: pair.right_text for pair in question.match_pairs.all()}
-                            user_pairs = answer
                             if all(user_pairs.get(pair_id) == correct_pairs[pair_id] for pair_id in correct_pairs):
                                 score += question.points
-            
+                elif question.question_type == 'SA' or question.question_type == 'UP':
+                    answer = request.POST.get(f'question_{question.id}')
+                    if answer:
+                        answers[question.id] = answer  # Store SA/UP answers
+            request.session['answers'] = answers  # Update session
+            request.session.modified = True  # Ensure session is updated
+
+        if 'final_submit' in request.POST:  # Check for final submission
             percentage_score = (score / (total_questions * max([q.points for q in questions], default=1))) * 100 if total_questions > 0 else 0
             
             Result.objects.create(
@@ -341,6 +288,17 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
             assignment.save()
             messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
             return redirect('core:candidate_dashboard')
+        
+        # Re-render the page with updated answers
+        context = {
+            'assignment': assignment,
+            'questions': questions,
+            'sections': assessment.sections.all().order_by('order'),
+            'time_limit': time_limit,
+            'layout': layout,
+            'navigation': navigation
+        }
+        return render(request, 'take_assessment.html', context)
     
     # Determine which questions/sections to display based on layout
     sections = assessment.sections.all().order_by('order')
