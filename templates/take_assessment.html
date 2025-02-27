@@ -25,58 +25,62 @@
                             <h3>{{ section.title }}</h3>
                         </div>
                         <div class="card-body">
-                            {% for question in section.questions.all %}
-                                <h4>{{ question.text }}</h4>  <!-- Ensure question text is displayed -->
-                                {% if question.question_type == 'MC' %}
-                                    {% for choice in question.choices.all %}
+                            {% if section.questions.all %}
+                                {% for question in section.questions.all %}
+                                    <h4>{{ question.text }}</h4>  <!-- Ensure question text is displayed -->
+                                    {% if question.question_type == 'MC' %}
+                                        {% for choice in question.choices.all %}
+                                            <div class="form-check">
+                                                <label class="form-check-label">
+                                                    <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
+                                                    {{ choice.text }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    
+                                    {% elif question.question_type == 'TF' %}
                                         <div class="form-check">
                                             <label class="form-check-label">
-                                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input">
-                                                {{ choice.text }}
+                                                <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
                                             </label>
                                         </div>
-                                    {% endfor %}
-                                
-                                {% elif question.question_type == 'TF' %}
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" name="question_{{ question.id }}" value="True" class="form-check-input"> True
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
-                                        </label>
-                                    </div>
-                                
-                                {% elif question.question_type == 'SA' %}
-                                    <div class="mb-3">
-                                        <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
-                                    </div>
-                                
-                                {% elif question.question_type == 'UP' %}
-                                    <div class="mb-3">
-                                        <input type="file" name="question_{{ question.id }}" class="form-control">
-                                    </div>
-                                
-                                {% elif question.question_type == 'MA' %}
-                                    {% for pair in question.match_pairs.all %}
-                                        <div class="mb-3">
-                                            <label>{{ pair.left_text }}</label>
-                                            <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
-                                                <option value="">Select...</option>
-                                                {% for other_pair in question.match_pairs.all %}
-                                                    <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
-                                                {% endfor %}
-                                            </select>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input type="radio" name="question_{{ question.id }}" value="False" class="form-check-input"> False
+                                            </label>
                                         </div>
-                                    {% endfor %}
-                                {% endif %}
-                            {% endfor %}
+                                    
+                                    {% elif question.question_type == 'SA' %}
+                                        <div class="mb-3">
+                                            <input type="text" name="question_{{ question.id }}" class="form-control" placeholder="Your answer">
+                                        </div>
+                                    
+                                    {% elif question.question_type == 'UP' %}
+                                        <div class="mb-3">
+                                            <input type="file" name="question_{{ question.id }}" class="form-control">
+                                        </div>
+                                    
+                                    {% elif question.question_type == 'MA' %}
+                                        {% for pair in question.match_pairs.all %}
+                                            <div class="mb-3">
+                                                <label>{{ pair.left_text }}</label>
+                                                <select name="question_{{ question.id }}_pair_{{ pair.id }}" class="form-control">
+                                                    <option value="">Select...</option>
+                                                    {% for other_pair in question.match_pairs.all %}
+                                                        <option value="{{ other_pair.right_text }}">{{ other_pair.right_text }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p>No questions in this section.</p>
+                            {% endif %}
                         </div>
                     </div>
                 {% empty %}
-                    <p>No questions in this section.</p>
+                    <p>No sections available for this assessment.</p>
                 {% endfor %}
             {% else %}
                 {% for question in questions %}
@@ -133,12 +137,12 @@
                     {% with questions=assessment.questions.all|dictsort:"id" %}
                         {% for q in questions %}
                             {% if forloop.last %}
-                                <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                                <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                             {% endif %}
                         {% endfor %}
                     {% endwith %}
                 {% else %}
-                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                    <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                 {% endif %}
             </div>
         </form>
@@ -208,7 +212,7 @@
                                         {% endwith %}
                                     {% endif %}
                                     {% if forloop.last %}
-                                        <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                                        <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                                     {% else %}
                                         {% with next_question=questions|slice:forloop.counter0|add:"1" %}
                                             <a href="{% url 'core:take_assessment_question' assignment.id next_question.0.id %}" class="btn btn-secondary">Next</a>
@@ -218,7 +222,7 @@
                             {% endfor %}
                         {% endwith %}
                     {% else %}
-                        <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                        <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                     {% endif %}
                 </div>
             </form>
@@ -293,7 +297,7 @@
                                     {% endwith %}
                                 {% endif %}
                                 {% if forloop.last %}
-                                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                                    <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                                 {% else %}
                                     {% with next_section=sections|slice:forloop.counter0|add:"1" %}
                                         <a href="{% url 'core:take_assessment_section' assignment.id next_section.0.id %}" class="btn btn-secondary">Next</a>
@@ -303,7 +307,7 @@
                         {% endfor %}
                     {% endwith %}
                 {% else %}
-                    <button type="submit" class="btn btn-primary">Submit Assessment</button>
+                    <button type="submit" name="final_submit" class="btn btn-primary">Submit Assessment</button>
                 {% endif %}
             </div>
             <a href="{% url 'core:candidate_dashboard' %}" class="btn btn-secondary mt-2">Back to Dashboard</a>

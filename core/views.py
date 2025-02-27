@@ -241,7 +241,7 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
         total_questions = questions.count()
         
         for question in questions:
-            if str(question.id) in request.POST and question.id in answers:
+            if str(question.id) in request.POST:
                 answer = request.POST.get(f'question_{question.id}')
                 if answer:
                     answers[question.id] = answer  # Update answer in session
@@ -275,39 +275,29 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
             request.session['answers'] = answers  # Update session
             request.session.modified = True  # Ensure session is updated
 
-        if 'final_submit' in request.POST:  # Check for final submission
-            percentage_score = (score / (total_questions * max([q.points for q in questions], default=1))) * 100 if total_questions > 0 else 0
-            
-            Result.objects.create(
-                assignment=assignment,
-                score=percentage_score,
-                answers=answers
-            )
-            del request.session['answers']  # Clear session after submission
-            assignment.completed = True
-            assignment.save()
-            messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
-            return redirect('core:candidate_dashboard')
+        percentage_score = (score / (total_questions * max([q.points for q in questions], default=1))) * 100 if total_questions > 0 else 0
         
-        # Re-render the page with updated answers
-        context = {
-            'assignment': assignment,
-            'questions': questions,
-            'sections': assessment.sections.all().order_by('order'),
-            'time_limit': time_limit,
-            'layout': layout,
-            'navigation': navigation
-        }
-        return render(request, 'take_assessment.html', context)
+        Result.objects.create(
+            assignment=assignment,
+            score=percentage_score,
+            answers=answers
+        )
+        del request.session['answers']  # Clear session after submission
+        assignment.completed = True
+        assignment.save()
+        messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
+        return redirect('core:candidate_dashboard')
     
     # Determine which questions/sections to display based on layout
     sections = assessment.sections.all().order_by('order')
+    questions = assessment.questions.all().select_related('section').order_by('section__order', 'id')  # Ensure related sections are included
+    
     if layout in ['all_one_page', 'all_sections']:
         # Show all questions or sections on one page
         context = {
             'assignment': assignment,
-            'questions': questions,
-            'sections': sections,
+            'questions': questions,  # Ensure questions are included
+            'sections': sections,  # Ensure sections are included
             'time_limit': time_limit,
             'layout': layout,
             'navigation': navigation
