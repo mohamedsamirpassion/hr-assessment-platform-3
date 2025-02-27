@@ -230,60 +230,117 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
     navigation = assessment.navigation
     time_limit = assessment.time_limit
 
+    # Initialize or retrieve answers from session
+    if 'answers' not in request.session:
+        request.session['answers'] = {}
+
     if request.method == 'POST':
-        score = 0
-        answers = {}
-        total_questions = questions.count()
-        
-        for question in questions:
-            if question.question_type == 'MC':
-                selected_choice = request.POST.get(f'question_{question.id}')
-                if selected_choice:
-                    choice = Choice.objects.get(id=selected_choice)
-                    answers[question.id] = selected_choice
-                    if choice.is_correct:
-                        score += question.points  # Use points from Question model
+        # Check if it's a per-question submission or final assessment submission
+        question_id = request.POST.get('question_id')
+        if question_id:
+            # Per-question submission
+            for question in questions:
+                if str(question.id) == question_id:
+                    if question.question_type == 'MC':
+                        selected_choice = request.POST.get(f'question_{question.id}')
+                        if selected_choice:
+                            request.session['answers'][question.id] = selected_choice
+                    elif question.question_type == 'TF':
+                        selected_choice = request.POST.get(f'question_{question.id}')
+                        if selected_choice:
+                            request.session['answers'][question.id] = selected_choice
+                    elif question.question_type == 'SA':
+                        answer = request.POST.get(f'question_{question.id}')
+                        if answer:
+                            request.session['answers'][question.id] = answer
+                    elif question.question_type == 'UP':
+                        file = request.FILES.get(f'question_{question.id}')
+                        if file:
+                            request.session['answers'][question.id] = file.name  # Store filename for now
+                    elif question.question_type == 'MA':
+                        user_pairs = {}
+                        for pair in question.match_pairs.all():
+                            user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
+                            if user_answer:
+                                user_pairs[pair.id] = user_answer
+                        request.session['answers'][question.id] = user_pairs
+                    messages.success(request, f"Answer for question '{question.text}' submitted successfully!")
+                    request.session.modified = True  # Ensure session is updated
+                    break
+            # Redirect back to the same page or the next question if sequential
+            if layout == 'each_question' and navigation == 'sequential' and question_id:
+                current_question = get_object_or_404(Question, id=question_id, assessment=assessment)
+                next_question = questions.filter(id__gt=current_question.id).order_by('id').first()
+                if next_question:
+                    return redirect('core:take_assessment_question', assignment_id=assignment_id, question_id=next_question.id)
+                return render(request, 'take_assessment_question.html', {
+                    'assignment': assignment,
+                    'question': current_question,
+                    'time_limit': time_limit,
+                    'layout': layout,
+                    'navigation': navigation
+                })
+            elif layout == 'each_section' and navigation == 'sequential' and section_id:
+                current_section = get_object_or_404(Section, id=section_id, assessment=assessment)
+                next_section = assessment.sections.filter(order__gt=current_section.order).order_by('order').first()
+                if next_section:
+                    return redirect('core:take_assessment_section', assignment_id=assignment_id, section_id=next_section.id)
+                return render(request, 'take_assessment_section.html', {
+                    'assignment': assignment,
+                    'section': current_section,
+                    'questions': current_section.questions.all(),
+                    'time_limit': time_limit,
+                    'layout': layout,
+                    'navigation': navigation
+                })
+            return render(request, 'take_assessment.html', {
+                'assignment': assignment,
+                'questions': questions,
+                'sections': assessment.sections.all().order_by('order'),
+                'time_limit': time_limit,
+                'layout': layout,
+                'navigation': navigation
+            })
+        else:
+            # Final assessment submission
+            score = 0
+            answers = request.session.get('answers', {})
+            total_questions = questions.count()
             
-            elif question.question_type == 'TF':
-                selected_choice = request.POST.get(f'question_{question.id}')
-                if selected_choice:
-                    choice = Choice.objects.get(question=question, text__iexact=selected_choice)
-                    answers[question.id] = selected_choice
-                    if choice.is_correct:
-                        score += question.points  # Use points from Question model
+            for question in questions:
+                if question.id in answers:
+                    answer = answers[question.id]
+                    if question.is_auto_graded:
+                        if question.question_type == 'MC':
+                            try:
+                                choice = Choice.objects.get(id=answer)
+                                if choice.is_correct:
+                                    score += question.points
+                            except Choice.DoesNotExist:
+                                pass
+                        elif question.question_type == 'TF':
+                            if answer.lower() == 'true' or answer.lower() == 'false':
+                                choice = Choice.objects.get(question=question, text__iexact=answer)
+                                if choice.is_correct:
+                                    score += question.points
+                        elif question.question_type == 'MA':
+                            correct_pairs = {pair.id: pair.right_text for pair in question.match_pairs.all()}
+                            user_pairs = answer
+                            if all(user_pairs.get(pair_id) == correct_pairs[pair_id] for pair_id in correct_pairs):
+                                score += question.points
             
-            elif question.question_type == 'SA':
-                answer = request.POST.get(f'question_{question.id}')
-                if answer:
-                    answers[question.id] = answer  # Manual grading needed for SA
+            percentage_score = (score / (total_questions * max([q.points for q in questions], default=1))) * 100 if total_questions > 0 else 0
             
-            elif question.question_type == 'UP':
-                file = request.FILES.get(f'question_{question.id}')
-                if file:
-                    answers[question.id] = file.name  # Store filename for now (manual grading needed)
-            
-            elif question.question_type == 'MA':
-                correct_pairs = {pair.id: (pair.left_text, pair.right_text) for pair in question.match_pairs.all()}
-                user_pairs = {}
-                for pair in question.match_pairs.all():
-                    user_answer = request.POST.get(f'question_{question.id}_pair_{pair.id}')
-                    if user_answer:
-                        user_pairs[pair.id] = user_answer
-                answers[question.id] = user_pairs
-                if user_pairs == {k: v[1] for k, v in correct_pairs.items()}:
-                    score += question.points  # Use points from Question model
-        
-        percentage_score = (score / (total_questions * max([q.points for q in questions], default=1))) * 100 if total_questions > 0 else 0
-        
-        Result.objects.create(
-            assignment=assignment,
-            score=percentage_score,
-            answers=answers
-        )
-        assignment.completed = True
-        assignment.save()
-        messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
-        return redirect('core:candidate_dashboard')
+            Result.objects.create(
+                assignment=assignment,
+                score=percentage_score,
+                answers=answers
+            )
+            del request.session['answers']  # Clear session after submission
+            assignment.completed = True
+            assignment.save()
+            messages.success(request, f"Assessment completed! Your score: {score}/{total_questions * max([q.points for q in questions], default=1)} ({percentage_score:.2f}%)")
+            return redirect('core:candidate_dashboard')
     
     # Determine which questions/sections to display based on layout
     sections = assessment.sections.all().order_by('order')
@@ -352,6 +409,7 @@ def take_assessment(request, assignment_id, section_id=None, question_id=None):
     }
     return render(request, 'take_assessment.html', context)
 
+
 @login_required
 def create_question(request, assessment_id):
     if not hasattr(request.user, 'hrprofile'):
@@ -359,6 +417,8 @@ def create_question(request, assessment_id):
         return redirect('core:home')
     
     assessment = get_object_or_404(Assessment, id=assessment_id, created_by=request.user)
+    sections = assessment.sections.all().order_by('order')  # Get all sections for the assessment
+    
     if request.method == 'POST':
         section_id = request.POST.get('section')
         section_title = request.POST.get('section_title')
@@ -372,6 +432,16 @@ def create_question(request, assessment_id):
         if section_id:
             section = get_object_or_404(Section, id=section_id, assessment=assessment)
         else:
+            # Ensure the section title is not empty and create a unique section
+            if not section_title:
+                messages.error(request, "Section title is required for new sections.")
+                return render(request, 'create_question.html', {'assessment': assessment, 'sections': sections})
+            
+            # Check if a section with this title already exists for this assessment
+            if Section.objects.filter(assessment=assessment, title=section_title).exists():
+                messages.error(request, f"A section with the title '{section_title}' already exists.")
+                return render(request, 'create_question.html', {'assessment': assessment, 'sections': sections})
+            
             section, created = Section.objects.get_or_create(
                 assessment=assessment,
                 title=section_title,
@@ -415,8 +485,10 @@ def create_question(request, assessment_id):
                 MatchPair.objects.create(question=question, left_text=left2, right_text=right2)
         messages.success(request, "Question created successfully!")
         return redirect('core:view_assessments')
+    
     context = {
         'assessment': assessment,
+        'sections': sections,  # Pass sections to the template
     }
     return render(request, 'create_question.html', context)
 

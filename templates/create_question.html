@@ -13,17 +13,17 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="section" class="form-label">Select or Create Section:</label>
-            <select name="section" id="section" class="form-control">
+            <select name="section" id="section" class="form-control" onchange="toggleNewSectionFields()">
                 <option value="">-- Create New Section --</option>
-                {% for existing_section in assessment.sections.all %}
-                    <option value="{{ existing_section.id }}">{{ existing_section.title }} (Order: {{ existing_section.order }})</option>
+                {% for section in sections %}
+                    <option value="{{ section.id }}">{{ section.title }} (Order: {{ section.order }})</option>
                 {% endfor %}
             </select>
         </div>
         <div id="new_section_fields" style="display: none;">
             <div class="mb-3">
                 <label for="section_title" class="form-label">New Section Title (e.g., Listening, Reading):</label>
-                <input type="text" name="section_title" id="section_title" class="form-control">
+                <input type="text" name="section_title" id="section_title" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label for="section_order" class="form-label">Section Order (e.g., 1, 2, 3):</label>
@@ -58,7 +58,7 @@
                 <input type="text" name="choice1" id="choice1" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label for "choice2" class="form-label">Choice 2:</label>
+                <label for="choice2" class="form-label">Choice 2:</label>
                 <input type="text" name="choice2" id="choice2" class="form-control" required>
             </div>
             <div class="mb-3">
@@ -113,15 +113,15 @@
     <a href="{% url 'core:view_assessments' %}" class="btn btn-secondary mt-2">Back to Assessments</a>
 
     <script>
-        // Show new section fields if "Create New Section" is selected
-        document.getElementById('section').addEventListener('change', function() {
+        function toggleNewSectionFields() {
+            const sectionSelect = document.getElementById('section');
             const newSectionFields = document.getElementById('new_section_fields');
-            if (this.value === '') {
+            if (sectionSelect.value === '') {
                 newSectionFields.style.display = 'block';
             } else {
                 newSectionFields.style.display = 'none';
             }
-        });
+        }
 
         function showQuestionFields() {
             const questionType = document.getElementById('question_type').value;
@@ -135,6 +135,9 @@
             else if (questionType === 'UP') document.getElementById('up_fields').style.display = 'block';
             else if (questionType === 'MA') document.getElementById('ma_fields').style.display = 'block';
         }
-        window.onload = showQuestionFields;
+        window.onload = function() {
+            toggleNewSectionFields();
+            showQuestionFields();
+        };
     </script>
 {% endblock %}
